@@ -29,22 +29,22 @@
       gap: 10px;
     }
 
-    input {
+    input, button {
       padding: 12px;
-      background-color: #1a1a1a;
-      border: 1px solid #333;
-      color: white;
       font-size: 1rem;
       border-radius: 6px;
     }
 
+    input {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      color: white;
+    }
+
     button {
-      padding: 12px;
       background-color: #00ff88;
       border: none;
-      font-size: 1rem;
       font-weight: 600;
-      border-radius: 6px;
       cursor: pointer;
     }
 
@@ -88,6 +88,22 @@
     .btn-small:hover {
       background: #555;
     }
+
+    #m3uContent {
+      margin-top: 2rem;
+      background: #111;
+      padding: 1rem;
+      white-space: pre-wrap;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .inspire {
+      margin-top: 3rem;
+      text-align: center;
+      font-style: italic;
+      color: #00ff88;
+    }
   </style>
 </head>
 <body>
@@ -99,13 +115,23 @@
   </div>
 
   <div id="result"></div>
+  <div class="input-group" style="max-width: 800px; margin: 2rem auto;">
+    <button onclick="exportM3U()">⬇️ Download as .m3u</button>
+    <button onclick="showM3U()">👁️ Show .m3u Content</button>
+  </div>
+  <pre id="m3uContent"></pre>
+
+  <div class="inspire">
+    "I know You work Hard, I know U Want to Make Us Happy, But first U have to Make urself..."
+  </div>
 
   <script>
     async function parseM3U8() {
       const url = document.getElementById('url').value.trim();
       const auth = document.getElementById('auth').value.trim();
       const result = document.getElementById('result');
-      result.innerHTML = 'Parsing...';
+      result.innerHTML = '⏳ Parsing...';
+      document.getElementById('m3uContent').style.display = 'none';
 
       const endpoint = 'https://m3u8-xvpf.onrender.com/M3u8/m3u8-parser.php';
 
@@ -137,7 +163,7 @@
 
         variants.forEach(v => {
           m3uData.push(`#EXT-X-STREAM-INF:BANDWIDTH=${v.bw},CODECS="${v.codec}",RESOLUTION=${v.res}`);
-          m3uData.push(v.url);
+          m3uData.push(decodeURIComponent(v.url));
 
           html += `<tr>
             <td>${v.res}</td>
@@ -145,16 +171,14 @@
             <td>${v.codec}</td>
             <td>
               <button class="btn-small" onclick="window.open('player.html?src=${encodeURIComponent(v.url)}')">Play</button>
-              <button class="btn-small" onclick="navigator.clipboard.writeText('${v.url}')">Copy</button>
+              <button class="btn-small" onclick="navigator.clipboard.writeText('${decodeURIComponent(v.url)}')">Copy</button>
             </td>
           </tr>`;
         });
 
         html += '</tbody></table>';
-        html += `<br><button onclick="exportM3U()">Download as .m3u</button>`;
         result.innerHTML = html;
 
-        // store for export
         window.__M3U_EXPORT = m3uData.join('\n');
 
       } catch (err) {
@@ -171,6 +195,13 @@
       a.download = 'playlist.m3u';
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    function showM3U() {
+      const content = window.__M3U_EXPORT || '';
+      const box = document.getElementById('m3uContent');
+      box.textContent = content;
+      box.style.display = 'block';
     }
   </script>
 </body>
