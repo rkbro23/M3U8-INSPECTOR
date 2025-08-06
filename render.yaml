@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: m3u8
+    env: docker
+    plan: free
+    autoDeploy: true
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 10000
