@@ -1,25 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Video Player</title>
-  <link href="https://unpkg.com/video.js/dist/video-js.min.css" rel="stylesheet" />
-  <script src="https://unpkg.com/video.js/dist/video.min.js"></script>
-</head>
-<body style="background:#000; text-align:center; color:#fff;">
-  <h2>🔴 Live Player</h2>
-  <video id="video" class="video-js vjs-default-skin" width="80%" height="auto" controls autoplay>
-    <source id="streamSrc" src="" type="application/x-mpegURL" />
-  </video>
-
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const stream = urlParams.get('stream');
-    if (stream) {
-      document.getElementById('streamSrc').src = stream;
-      videojs(document.getElementById('video')).load();
-    } else {
-      document.body.innerHTML = "<h2>No Stream URL Provided</h2>";
+  <meta charset="UTF-8" />
+  <title>Stream Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://vjs.zencdn.net/8.9.0/video-js.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
     }
+
+    .tab-buttons {
+      text-align: center;
+      padding: 1rem;
+      background: #111;
+    }
+
+    .tab-buttons button {
+      background: #222;
+      color: white;
+      border: none;
+      margin: 0 5px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .tab-buttons button.active {
+      background: #00ff88;
+      color: #000;
+    }
+
+    .player-wrapper {
+      display: none;
+      height: calc(100vh - 60px);
+    }
+
+    .player-wrapper.active {
+      display: block;
+    }
+
+    iframe, video {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="tab-buttons">
+    <button onclick="showPlayer('videojs')" id="btn-videojs">Video.js</button>
+    <button onclick="showPlayer('html5')" id="btn-html5">HTML5</button>
+    <button onclick="showPlayer('custom')" id="btn-custom">Custom</button>
+  </div>
+
+  <div id="videojs" class="player-wrapper active">
+    <video id="vj-player" class="video-js vjs-default-skin" controls autoplay></video>
+  </div>
+
+  <div id="html5" class="player-wrapper">
+    <video id="html5-player" controls autoplay></video>
+  </div>
+
+  <div id="custom" class="player-wrapper">
+    <iframe id="custom-player" allowfullscreen></iframe>
+  </div>
+
+  <script src="https://vjs.zencdn.net/8.9.0/video.min.js"></script>
+  <script>
+    const encoded = new URLSearchParams(location.search).get('src');
+    const streamUrl = decodeURIComponent(encoded || '');
+
+    if (!streamUrl || !streamUrl.startsWith('http')) {
+      document.body.innerHTML = '<h2 style="color:red;text-align:center;margin-top:50px;">Invalid or missing stream URL</h2>';
+      throw new Error("Missing URL");
+    }
+
+    // Setup Video.js player
+    const vj = videojs('vj-player');
+    vj.src({ src: streamUrl, type: 'application/x-mpegURL' });
+
+    // Setup HTML5 player
+    document.getElementById('html5-player').src = streamUrl;
+
+    // Setup Custom Player (JWPlayer skin)
+    document.getElementById('custom-player').src =
+      'https://anym3u8player.com/ultimate-player-generator/player.php?player=jwplayer&url=' +
+      encodeURIComponent(streamUrl);
+
+    // Tab switching
+    function showPlayer(id) {
+      document.querySelectorAll('.player-wrapper').forEach(div => div.classList.remove('active'));
+      document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
+
+      document.getElementById(id).classList.add('active');
+      document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    // Default to Video.js
+    document.getElementById('btn-videojs').classList.add('active');
   </script>
 </body>
 </html>
