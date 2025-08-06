@@ -32,7 +32,7 @@
 
       document.getElementById('result').innerHTML = '⏳ Parsing...';
 
-      fetch('parser.php?url=' + encodeURIComponent(url) + '&auth=' + encodeURIComponent(auth))
+      fetch('m3u8-parser.php?url=' + encodeURIComponent(url) + '&auth=' + encodeURIComponent(auth))
         .then(res => res.json())
         .then(data => {
           if (data.error) {
