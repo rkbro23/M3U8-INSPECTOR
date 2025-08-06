@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>M3U8 Inspector Pro</title>
+  <style>
+    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
+    input, textarea { width: 80%; padding: 10px; margin: 10px; border-radius: 5px; border: none; }
+    button { padding: 10px 20px; margin: 10px; border-radius: 5px; background: #0f0; color: #000; font-weight: bold; border: none; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #333; }
+    .copy-btn, .play-btn, .export-btn { padding: 5px 10px; margin: 2px; border-radius: 3px; border: none; cursor: pointer; }
+    .copy-btn { background: #06f; color: #fff; }
+    .play-btn { background: #f90; color: #000; }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 M3U8 Inspector Pro</h1>
+  <form id="parserForm">
+    <input type="text" id="url" placeholder="Enter M3U8 URL" required><br>
+    <input type="text" id="auth" placeholder="Optional Authorization Header (Bearer ... or Basic ...)" />
+    <button type="submit">🔍 Parse M3U8</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('parserForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const url = document.getElementById('url').value;
+      const auth = document.getElementById('auth').value;
+
+      document.getElementById('result').innerHTML = '⏳ Parsing...';
+
+      fetch('parser.php?url=' + encodeURIComponent(url) + '&auth=' + encodeURIComponent(auth))
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            document.getElementById('result').innerHTML = '❌ ' + data.error;
+            return;
+          }
+
+          let html = `<h2>📺 Variant Streams</h2><table><tr><th>Resolution</th><th>Bandwidth</th><th>Codec</th><th>Actions</th></tr>`;
+          let m3uExport = '#EXTM3U\n';
+
+          data.streams.forEach(s => {
+            m3uExport += `#EXT-X-STREAM-INF:BANDWIDTH=${s.bw},CODECS="${s.codec}",RESOLUTION=${s.res}\n${s.url}\n`;
+            html += `<tr>
+              <td>${s.res}</td>
+              <td>${(s.bw / 1000)} kbps</td>
+              <td>${s.codec}</td>
+              <td>
+                <button class="copy-btn" onclick="copyText('${s.url}')">📋 Copy</button>
+                <button class="play-btn" onclick="playStream('${s.url}')">▶️ Play</button>
+              </td>
+            </tr>`;
+          });
+
+          html += `</table><br>
+          <button class="export-btn" onclick="downloadM3U()">⬇️ Export .m3u</button>`;
+
+          document.getElementById('result').innerHTML = html;
+
+          window.m3uData = m3uExport;
+        });
+    });
+
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt);
+      alert("✅ Copied to clipboard!");
+    }
+
+    function playStream(url) {
+      window.open('player.html?stream=' + encodeURIComponent(url), '_blank');
+    }
+
+    function downloadM3U() {
+      const blob = new Blob([window.m3uData], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'variants.m3u';
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
