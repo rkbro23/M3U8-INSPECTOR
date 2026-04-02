@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Choose Your Plan | RK Premium IPTV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0f172a;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .plan-card-container {
+      max-width: 580px;
+      width: 100%;
+      background: #1e293b;
+      border-radius: 48px;
+      padding: 2.5rem 2rem;
+      border: 1px solid #334155;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+      animation: slideUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      transition: 0.2s;
+    }
+    .back-link:hover { color: #e11d48; }
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      word-break: break-word;
+    }
+    .portal-name-highlight {
+      color: #e11d48;
+      border-bottom: 2px dashed #e11d48;
+      display: inline-block;
+    }
+    .sub {
+      color: #94a3b8;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 0.8rem;
+    }
+    .plan-options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: 1.5rem 0 2rem;
+    }
+    .plan-item {
+      background: #0f172a;
+      border-radius: 80px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid #334155;
+    }
+    .plan-item:hover {
+      border-color: #e11d48;
+      transform: translateX(6px);
+      background: #1a253c;
+    }
+    .plan-item.selected {
+      border-color: #e11d48;
+      background: #1e293b;
+      box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.4);
+    }
+    .plan-duration {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .plan-price {
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: #facc15;
+    }
+    .btn-buy {
+      background: #e11d48;
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 60px;
+      font-weight: 800;
+      font-size: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn-buy:hover {
+      background: #be123c;
+      transform: scale(0.98);
+    }
+    .info-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 550px) {
+      body { padding: 1rem; }
+      .plan-card-container { padding: 1.5rem; }
+      h2 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="plan-card-container">
+  <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Store</a>
+  <h2>Select duration for <br><span id="portalNameDisplay" class="portal-name-highlight">—</span></h2>
+  <div class="sub"><i class="fas fa-calendar-check"></i> Choose your subscription period</div>
+
+  <div class="plan-options" id="planOptionsList"></div>
+
+  <button id="confirmBuyBtn" class="btn-buy"><i class="fab fa-telegram"></i> Confirm & Buy on Telegram</button>
+  <div class="info-note">Instant delivery • 24/7 support • No hidden fees</div>
+</div>
+
+<script>
+  // Plans data (all under ₹300)
+  const plans = [
+    { duration: "1 Month", price: 99 },
+    { duration: "3 Months", price: 199 },
+    { duration: "6 Months", price: 249 },
+    { duration: "12 Months", price: 299 }
+  ];
+
+  let currentPlan = plans[0];  // default
+  let portalName = "";
+
+  // Get portal from URL query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  portalName = urlParams.get('portal');
+  if (!portalName) portalName = "Selected Portal";
+  document.getElementById("portalNameDisplay").innerText = portalName;
+
+  // Render plan options
+  const container = document.getElementById("planOptionsList");
+  function renderPlans() {
+    container.innerHTML = "";
+    plans.forEach(plan => {
+      const div = document.createElement("div");
+      div.className = "plan-item";
+      if (currentPlan.duration === plan.duration) div.classList.add("selected");
+      div.innerHTML = `
+        <span class="plan-duration"><i class="fas fa-clock"></i> ${plan.duration}</span>
+        <span class="plan-price">₹${plan.price}</span>
+      `;
+      div.addEventListener("click", () => {
+        document.querySelectorAll(".plan-item").forEach(item => item.classList.remove("selected"));
+        div.classList.add("selected");
+        currentPlan = plan;
+      });
+      container.appendChild(div);
+    });
+  }
+  renderPlans();
+
+  // Telegram redirect with exact portal and plan details
+  const buyBtn = document.getElementById("confirmBuyBtn");
+  buyBtn.addEventListener("click", () => {
+    const message = `🛒 *NEW IPTV ORDER*%0A📺 Portal: ${portalName}%0A📆 Plan: ${currentPlan.duration}%0A💰 Amount: ₹${currentPlan.price}%0A✅ Ready for payment and activation.`;
+    const tgUrl = `https://t.me/IPTV_AccessBot?text=${message}`;
+    window.open(tgUrl, "_blank");
+  });
+</script>
+</body>
+</html>
